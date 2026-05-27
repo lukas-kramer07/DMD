@@ -2,7 +2,7 @@
 
 Companion code for the seminar paper "Dynamic Mode Decomposition
 and Its Connection to the Koopman Operator
-for Nonlinear Dynamical System" by Lukas Kramer and Matteo Mämpel.
+for Nonlinear Dynamical Systems" by Lukas Kramer and Matteo Mämpel.
 
 ---
 
