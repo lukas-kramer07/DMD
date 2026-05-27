@@ -11,7 +11,7 @@ from scipy.linalg import svd
 class DMD:
     def __init__(self, energy_threshold=0.999):
         """
-        Classical Dynamic Mode Decomposition with energy-based truncation.
+        Exact Dynamic Mode Decomposition (Tu et al., 2014) with energy-based truncation.
         """
         self.energy_threshold = energy_threshold
         self.Phi = None        # Koopman / DMD Modes
@@ -35,7 +35,7 @@ class DMD:
         else:
             energy = Sigma**2
             cumulative_energy = np.cumsum(energy) / np.sum(energy)
-            r = np.searchsorted(cumulative_energy, self.energy_threshold) + 1
+            r = min(np.searchsorted(cumulative_energy, self.energy_threshold) + 1, len(Sigma))
         
         print(f"[Diagnostic] Fitted DMD with truncation rank r = {r}")
         
@@ -71,7 +71,9 @@ class DMD:
 class EDMD:
     def __init__(self, observables_fn):
         """
-        Extended Dynamic Mode Decomposition (Row-Convention).
+        Extended Dynamic Mode Decomposition (Williams 2015).
+        IMPORTANT: observables_fn must return [x_0, x_1, ..., x_{N-1}, ...].
+        Raw states must occupy the first N_states positions
         """
         self.observables_fn = observables_fn
         self.K_hat = None   # Finite-dimensional Koopman Operator Matrix
@@ -96,7 +98,7 @@ class EDMD:
         A_mat = 1.0 / M * psi_X.T.conj() @ psi_Y       # (K, K)
         
         # 3. Robust pseudoinverse of G via SVD truncation
-        U_g, S_g, Vt_g = np.linalg.svd(self.G_mat, full_matrices=False)
+        U_g, S_g, Vt_g = svd(self.G_mat, full_matrices=False)
         self.Sigma = S_g
         
         threshold = 1e-10

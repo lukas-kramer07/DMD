@@ -4,7 +4,7 @@
 from scipy.integrate import solve_ivp
 import numpy as np
 from src.dmd import DMD, EDMD, KoopmanVisualizer
-OPEN = False # controls whether experiment is run on an open or closed system/set of observables
+OPEN = True # controls whether experiment is run on an open or closed system/set of observables
 
 def nonlinear_2d_system(t, state, mu=-0.3, lmbda=-1.0, gamma=2.5):
     """
@@ -43,7 +43,7 @@ edmd_predictions = edmd.predict(snapshots_X, n_steps=n_prediction_steps)
 
 # 4. results
 print(f"=== EXPERIMENT 3: 2D NONLINEAR COMPARISON ===")
-print(f"Classical DMD Global Frobenius Error: {np.linalg.norm(true_trajectory - dmd_predictions):.4f}")
+print(f"Classical DMD Global Frobenius Error: {np.linalg.norm(true_trajectory - dmd_predictions):.4e}")
 print(f"Extended EDMD Global Frobenius Error: {np.linalg.norm(true_trajectory - edmd_predictions):.4e}")
 
 # 5. visualization
