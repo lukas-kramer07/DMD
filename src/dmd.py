@@ -137,128 +137,144 @@ class EDMD:
 
 class KoopmanVisualizer:
     @staticmethod
-    def plot_predictions(t_vector, true_data, pred_data, labels=None, title="Model Prediction"):
+    def plot_predictions(t_vector, true_data, pred_data, edmd_data=None, labels=None, title=None):
         """
-        Plots true trajectories against model predictions across all states.
-        Renders interactively without saving files.
+        Optimized for IEEE single-column width (approx 3.5 inches).
+        Can dynamically overlay an optional EDMD prediction line with high-contrast overlap.
         """
         n_states = true_data.shape[0]
-        fig, axes = plt.subplots(n_states, 1, figsize=(11, 2.5 * n_states), sharex=True)
+        fig, axes = plt.subplots(n_states, 1, figsize=(7, 2.3 * n_states), sharex=True)
         if n_states == 1:
             axes = [axes]
             
         if labels is None:
             labels = [f"State {i+1}" for i in range(n_states)]
             
+        line_true = None
+        line_pred = None
+        line_edmd = None
+        
         for i in range(n_states):
-            axes[i].plot(t_vector, true_data[i, :len(t_vector)], 'b-', label='True Data', linewidth=1.5)
-            axes[i].plot(t_vector, pred_data[i, :len(t_vector)], 'r--', label='Predicted', linewidth=1.5)
-            axes[i].set_ylabel(labels[i])
-            axes[i].legend(loc='upper right')
-            axes[i].grid(True, alpha=0.3)
+            line_true, = axes[i].plot(t_vector, true_data[i, :len(t_vector)], 
+                                      color='black', linestyle='-', linewidth=3.5, alpha=0.25)
             
-        axes[-1].set_xlabel("Time")
-        fig.suptitle(title, fontsize=12)
-        plt.tight_layout()
+            line_pred, = axes[i].plot(t_vector, pred_data[i, :len(t_vector)], 
+                                      color='red', linestyle='--', linewidth=1.2)
+            
+            if edmd_data is not None:
+                line_edmd, = axes[i].plot(t_vector, edmd_data[i, :len(t_vector)], 
+                                          color='blue', linestyle='-.', linewidth=1.5)
+                
+            axes[i].set_ylabel(labels[i], fontsize=9)
+            axes[i].grid(True, alpha=0.3)
+            axes[i].tick_params(labelsize=8)
+            
+        axes[-1].set_xlabel("Time (s)", fontsize=9)
+        
+        legend_lines = [line_true, line_pred]
+        legend_labels = ['True', 'Exact DMD']
+        if edmd_data is not None:
+            legend_lines.append(line_edmd)
+            legend_labels.append('Extended DMD')
+        
+        fig.legend(legend_lines, legend_labels, 
+                   loc='lower center', ncol=len(legend_lines), bbox_to_anchor=(0.5, 0.02),
+                   frameon=True, fontsize=8)
+        
+        if title:
+            fig.suptitle(title, fontsize=10)
+        plt.tight_layout(rect=[0, 0.08, 1, 1])
         plt.show()
 
     @staticmethod
-    def plot_error_growth(true_data, pred_data, title="Prediction Error Over Time"):
+    def plot_error_growth(true_data, pred_data, title=None):
         """
-        Computes and plots the log-scale Euclidean error trajectory over discrete steps.
+        Computes and plots log-scale Euclidean error tracking.
         """
         steps = min(true_data.shape[1], pred_data.shape[1])
         errors = np.linalg.norm(true_data[:, :steps] - pred_data[:, :steps], axis=0)
         
-        plt.figure(figsize=(8, 4))
-        plt.semilogy(range(steps), errors, 'g-', linewidth=2, label='Euclidean Error')
-        plt.xlabel('Discrete Step')
-        plt.ylabel('Error Matrix Norm (Log Scale)')
-        plt.title(title)
+        plt.figure(figsize=(7, 3.5))
+        plt.semilogy(range(steps), errors, 'g-', linewidth=1.8)
+        plt.xlabel('Discrete Step', fontsize=12)
+        plt.ylabel('Error Norm (Log Scale)', fontsize=12)
+        if title:
+            plt.title(title, fontsize=11)
         plt.grid(True, which="both", alpha=0.3)
-        plt.legend()
+        plt.tick_params(labelsize=9)
         plt.tight_layout()
         plt.show()
 
     @staticmethod
-    def plot_eigenvalues(eigenvalues, title="Discrete Eigenvalue Spectrum"):
+    def plot_eigenvalues(eigenvalues, title=None):
         """
-        Plots eigenvalues on the complex plane relative to the unit circle.
-        Uses raw strings to prevent syntax escape sequence warnings.
+        Plots eigenvalues cleanly on the complex plane. 
+        Legend identifies boundaries without blocking data points.
         """
-        plt.figure(figsize=(6, 6))
+        plt.figure(figsize=(5.5, 5.5))
         
-        # Plot Unit Circle boundaries
         theta = np.linspace(0, 2 * np.pi, 200)
-        plt.plot(np.cos(theta), np.sin(theta), 'k--', alpha=0.5, label='Unit Circle')
+        plt.plot(np.cos(theta), np.sin(theta), 'k--', alpha=0.4, label='Unit Circle')
+        plt.scatter(np.real(eigenvalues), np.imag(eigenvalues), c='crimson', 
+                    marker='o', s=45, zorder=3, label=r'Eigenvalues $\mu$')
         
-        # Scatter complex eigenvalues
-        plt.scatter(np.real(eigenvalues), np.imag(eigenvalues), c='crimson', marker='o', s=50, zorder=3, label=r'$\mu$')
-        
-        plt.axhline(0, color='black', alpha=0.3, linestyle=':')
-        plt.axvline(0, color='black', alpha=0.3, linestyle=':')
-        plt.xlabel(r'$\mathbb{R}e(\mu)$')
-        plt.ylabel(r'$\mathbb{I}m(\mu)$')
-        plt.title(title)
+        plt.axhline(0, color='black', alpha=0.2, linestyle=':')
+        plt.axvline(0, color='black', alpha=0.2, linestyle=':')
+        plt.xlabel(r'$Re(\mu)$', fontsize=12)
+        plt.ylabel(r'$Im(\mu)$', fontsize=12)
+        if title:
+            plt.title(title, fontsize=11)
         plt.grid(True, alpha=0.3)
-        plt.legend(loc='upper right')
+        plt.legend(loc='upper right', frameon=True, fontsize=9)
         plt.axis('equal')
+        plt.tick_params(labelsize=9)
         plt.tight_layout()
         plt.show()
 
     @staticmethod
-    def visualize_modes(xi, n_states, k_observables, title="Extracted Koopman Modes Matrix (V)"):
+    def plot_singular_values(S, r_trunc=None, title="Singular Value Spectrum"):
         """
-        Reconstructs the precise working modes matrix V = (inv(xi) @ B).T 
-        and visualizes component magnitudes as an interactive heatmap.
+        Publication-ready singular value spectrum plot.
+        Optimized strictly for IEEE single-column width (3.5 inches).
         """
-        # 1. Initialize B matching the row-convention state extraction layout (K_obs x N_states)
-        B = np.zeros((k_observables, n_states))
-        for i in range(n_states):
-            B[i, i] = 1.0
+        fig, ax = plt.subplots(figsize=(7, 4.3))
+        
+        ax.semilogy(range(1, len(S) + 1), S, color='gray', linestyle='-', linewidth=0.8, zorder=1)
+        
+        if r_trunc is not None:
+            # Retained Subspace: Solid dark blue markers
+            ax.semilogy(range(1, r_trunc + 1), S[:r_trunc], 'o', color='#003366', 
+                        markersize=4, label='Retained', zorder=3)
+            # Discarded Subspace: Red crosses
+            ax.semilogy(range(r_trunc + 1, len(S) + 1), S[r_trunc:], 'x', color='#cc0000', 
+                        markersize=4, label='Discarded', zorder=3)
             
-        # 2. Compute V using the correct inner dimensions: (9x9) @ (9x3) = (9x3) -> Transposed to (3x9)
-        V = (np.linalg.inv(xi) @ B).T
-        V_magnitudes = np.abs(V)
+            # Truncation boundary
+            ax.axvline(x=r_trunc + 0.5, color='black', linestyle='--', linewidth=0.8, alpha=0.8, zorder=2)
+            
+            # Subspace Shading (Light blue for physical, light red for noise)
+            ax.axvspan(0, r_trunc + 0.5, color='#e6f2ff', alpha=0.4, lw=0, zorder=0)
+            ax.axvspan(r_trunc + 0.5, len(S) + 1, color='#ffeeee', alpha=0.4, lw=0, zorder=0)
+            
+        ax.set_xlabel('Singular Value Index', fontsize=12)
+        ax.set_ylabel('Magnitude (Log)', fontsize=12)
+        if title:
+            ax.set_title(title, fontsize=10)
+            
+        ax.grid(True, which="major", axis="y", color='gray', alpha=0.2, linestyle='-')
+        ax.grid(True, which="major", axis="x", color='gray', alpha=0.05, linestyle='-')
         
-        # 3. Render Heatmap Visuals
-        plt.figure(figsize=(9, 4.5))
-        im = plt.imshow(V_magnitudes, cmap='YlGnBu', aspect='auto')
-        plt.colorbar(im, label='Magnitude $|V_{ij}|$')
+        ax.tick_params(axis='both', which='major', labelsize=10)
+        ax.set_xlim(0.5, len(S) + 0.5)
         
-        state_labels = [f"State {i+1}" for i in range(n_states)]
-        mode_labels = [f"Mode {j+1}" for j in range(k_observables)]
+        if r_trunc is not None:
+            ticks = [1, r_trunc] + list(range(5, len(S) + 1, 5))
+            ax.set_xticks(sorted(list(set(ticks))))
         
-        plt.yticks(range(n_states), state_labels)
-        plt.xticks(range(k_observables), mode_labels, rotation=45)
-        plt.xlabel("Koopman Eigenfunctions ($\phi_j$)")
-        plt.ylabel("Physical State Space Dimensions")
-        plt.title(title)
+        ax.legend(fontsize=12, loc='upper right', framealpha=0.0, edgecolor='none')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
         
-        # Overlay numerical value flags onto matrix coordinates safely
-        for i in range(V_magnitudes.shape[0]):
-            for j in range(V_magnitudes.shape[1]):
-                plt.text(j, i, f"{V_magnitudes[i, j]:.2f}", ha="center", va="center", 
-                         color="black" if V_magnitudes[i, j] < 0.7 * np.max(V_magnitudes) else "white")
-                         
         plt.tight_layout()
         plt.show()
 
-    @staticmethod
-    def plot_singular_values(model, title="Singular Value Spectrum Decay"):
-        """
-        Plots the raw singular values to diagnose information density/rank decay.
-        """
-        if model.Sigma is None:
-            print("Error: Model has not been fitted yet. No singular values found.")
-            return
-            
-        plt.figure(figsize=(8, 4))
-        plt.plot(range(1, len(model.Sigma) + 1), model.Sigma, 'bo-', linewidth=1.5, markersize=4)
-        plt.yscale('log')
-        plt.xlabel('Index')
-        plt.ylabel('Singular Value Magnitude (Log Scale)')
-        plt.title(title)
-        plt.grid(True, which="both", alpha=0.3)
-        plt.tight_layout()
-        plt.show()
