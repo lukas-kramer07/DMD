@@ -1,3 +1,9 @@
+"""
+Core DMD and EDMD implementation for the seminar paper:
+'Dynamic Mode Decomposition and Its Connection to the Koopman Operator for Nonlinear Dynamical Systems'
+Kramer & Mämpel, TU München, 2026.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import svd
