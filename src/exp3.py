@@ -6,14 +6,14 @@ import numpy as np
 from src.dmd import DMD, EDMD, KoopmanVisualizer
 OPEN = True # controls whether experiment is run on an open or closed system/set of observables
 
-def nonlinear_2d_system(t, state, mu=-0.3, lmbda=-1.0, gamma=2.5):
+def nonlinear_2d_system(t, state, mu=-0.3, alpha=-1.0, gamma=2.5):
     """
     x acts as the linear anchor.
     y is heavily driven by a quintic non-linearity.
     """
     x, y = state
     dxdt = mu * x**(1/4) if OPEN else mu*x
-    dydt = lmbda * y + gamma * (x**5)
+    dydt = alpha * y + gamma * (x**5)
     return [dxdt, dydt]
 
 def observables_expanded(state):
