@@ -224,12 +224,12 @@ class KoopmanVisualizer:
         theta = np.linspace(0, 2 * np.pi, 200)
         plt.plot(np.cos(theta), np.sin(theta), 'k--', alpha=0.4, label='Unit Circle')
         plt.scatter(np.real(eigenvalues), np.imag(eigenvalues), c='crimson', 
-                    marker='o', s=45, zorder=3, label=r'Eigenvalues $\mu$')
+                    marker='o', s=45, zorder=3, label=r'Eigenvalues $\lambda$')
         
         plt.axhline(0, color='black', alpha=0.2, linestyle=':')
         plt.axvline(0, color='black', alpha=0.2, linestyle=':')
-        plt.xlabel(r'$Re(\mu)$', fontsize=12)
-        plt.ylabel(r'$Im(\mu)$', fontsize=12)
+        plt.xlabel(r'$Re(\lambda)$', fontsize=12)
+        plt.ylabel(r'$Im(\lambda)$', fontsize=12)
         if title:
             plt.title(title, fontsize=11)
         plt.grid(True, alpha=0.3)
